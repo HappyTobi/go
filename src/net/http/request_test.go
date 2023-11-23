@@ -184,6 +184,22 @@ func TestMultipartReader(t *testing.T) {
 	}
 }
 
+func TestParseProxyRequest(t *testing.T) {
+	req, err := ReadRequest(bufio.NewReader(strings.NewReader("PROXY TCP4 127.0.0.1 127.0.0.1 123456 80\r\nGET / HTTP/1.1\r\nheader:foo\r\n\r\n")))
+	if err != nil {
+		return
+	}
+	if req.ContentLength != 0 {
+		t.Errorf("ContentLength = %d; want 0", req.ContentLength)
+	}
+	if req.Body == nil {
+		t.Errorf("Body = nil; want non-nil")
+	}
+	if req.Header.Get("header") == "" || req.Header.Get("header") != "foo" {
+		t.Errorf("Header = nil; want non-nil")
+	}
+}
+
 // Issue 9305: ParseMultipartForm should populate PostForm too
 func TestParseMultipartFormPopulatesPostForm(t *testing.T) {
 	postData :=

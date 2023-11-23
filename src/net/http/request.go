@@ -820,6 +820,10 @@ func ParseHTTPVersion(vers string) (major, minor int, ok bool) {
 	return int(maj), int(min), true
 }
 
+func isProxyMethod(method string) bool {
+	return len(method) > 0 && method == "PROXY"
+}
+
 func validMethod(method string) bool {
 	/*
 	     Method         = "OPTIONS"                ; Section 9.2
@@ -1053,6 +1057,12 @@ func readRequest(b *bufio.Reader) (req *Request, err error) {
 
 	var ok bool
 	req.Method, req.RequestURI, req.Proto, ok = parseRequestLine(s)
+	if isProxyMethod(req.Method) {
+		if s, err = tp.ReadLine(); err != nil {
+			return nil, err
+		}
+		req.Method, req.RequestURI, req.Proto, ok = parseRequestLine(s)
+	}
 	if !ok {
 		return nil, badStringError("malformed HTTP request", s)
 	}
